@@ -5,9 +5,5 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[configuration.secrets_scan]
-  omit_keys = [
-    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
-    "NEXT_PUBLIC_GEMINI_API_KEY",
-    "NEXT_PUBLIC_APP_URL"
-  ]
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,NEXT_PUBLIC_GEMINI_API_KEY,NEXT_PUBLIC_APP_URL"
