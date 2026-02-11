@@ -148,7 +148,7 @@ const ThreeDCarousel = ({
                                 onClick={() => setActive(index)}
                             >
                                 {/* Mesh Gradient Glow Container */}
-                                <div className="relative p-[2px] rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <div className="relative p-[2px] rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 transition-opacity duration-300">
                                     {/* Animated Mesh Gradient Background */}
                                     <div className="absolute inset-0 rounded-xl opacity-75 blur-xl bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 animate-pulse"></div>
 
