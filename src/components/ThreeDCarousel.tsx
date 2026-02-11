@@ -148,9 +148,9 @@ const ThreeDCarousel = ({
                                 onClick={() => setActive(index)}
                             >
                                 {/* Mesh Gradient Glow Container */}
-                                <div className="relative p-[2px] rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 transition-opacity duration-300">
+                                <div className={`relative p-[2px] rounded-xl transition-all duration-300 ${active === index ? 'bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500' : 'bg-transparent group-hover:bg-gradient-to-br group-hover:from-purple-500 group-hover:via-pink-500 group-hover:to-blue-500'}`}>
                                     {/* Animated Mesh Gradient Background */}
-                                    <div className="absolute inset-0 rounded-xl opacity-75 blur-xl bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 animate-pulse"></div>
+                                    <div className={`absolute inset-0 rounded-xl blur-xl bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 animate-pulse transition-opacity duration-300 ${active === index ? 'opacity-75' : 'opacity-0 group-hover:opacity-75'}`}></div>
 
                                     <Card
                                         className={`relative overflow-hidden bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 shadow-lg 
