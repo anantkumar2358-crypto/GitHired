@@ -3,7 +3,7 @@ import {
   CardHeader,
   CardTitle,
   CardContent,
-} from "../lightswind/card.tsx";
+} from "../lightswind/card";
 import { Badge } from "../lightswind/badge";
 import { Progress } from "../lightswind/progress";
 import { motion, AnimatePresence } from "framer-motion";
