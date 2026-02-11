@@ -19,12 +19,12 @@ interface ContributionActivityProps {
 
 const getIntensity = (level: number) => {
     switch (level) {
-        case 0: return 'bg-neutral-100 dark:bg-neutral-800';
-        case 1: return 'bg-green-200 dark:bg-green-900/40';
-        case 2: return 'bg-green-400 dark:bg-green-700/60';
-        case 3: return 'bg-green-600 dark:bg-green-600/80';
-        case 4: return 'bg-green-800 dark:bg-green-500';
-        default: return 'bg-neutral-100 dark:bg-neutral-800';
+        case 0: return 'bg-neutral-100 dark:bg-neutral-800/60 dark:border-neutral-700/60';
+        case 1: return 'bg-green-200 dark:bg-green-900 dark:text-green-100 dark:border-green-800'; // Increased visibility
+        case 2: return 'bg-green-400 dark:bg-green-700 dark:border-green-600';
+        case 3: return 'bg-green-600 dark:bg-green-600 dark:border-green-500';
+        case 4: return 'bg-green-800 dark:bg-green-500 dark:border-green-400';
+        default: return 'bg-neutral-100 dark:bg-neutral-800/60';
     }
 };
 
@@ -115,10 +115,42 @@ export function ContributionActivity({ weeks }: ContributionActivityProps) {
                 >
                     <div className="min-w-max">
                         {/* Day labels */}
+                        {/* Day labels (Month names) */}
                         <div className="flex mb-2">
                             <div className="w-8" />
                             <div className="flex gap-1 text-xs text-neutral-500 dark:text-neutral-400">
-                                {/* Simplified mapping for month labels calculation could be complex, omitting for strict UI sync or valid approximation */}
+                                {weeks.map((week, i) => {
+                                    const firstDay = week.days.find(d => d && d.date);
+                                    if (!firstDay) return <div key={i} className="w-3" />;
+
+                                    const currentDate = new Date(firstDay.date);
+                                    const currentMonth = currentDate.toLocaleString('default', { month: 'short' });
+
+                                    let showLabel = false;
+                                    if (i === 0) {
+                                        showLabel = true;
+                                    } else {
+                                        const prevWeek = weeks[i - 1];
+                                        const prevDay = prevWeek.days.find(d => d && d.date);
+                                        if (prevDay) {
+                                            const prevDate = new Date(prevDay.date);
+                                            const prevMonth = prevDate.toLocaleString('default', { month: 'short' });
+                                            if (currentMonth !== prevMonth) {
+                                                showLabel = true;
+                                            }
+                                        }
+                                    }
+
+                                    return (
+                                        <div key={i} className="w-3 relative h-4">
+                                            {showLabel && (
+                                                <span className="absolute left-0 bottom-0 whitespace-nowrap font-medium">
+                                                    {currentMonth}
+                                                </span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -126,13 +158,13 @@ export function ContributionActivity({ weeks }: ContributionActivityProps) {
                         <div className="flex gap-1">
                             {/* Day of week labels */}
                             <div className="flex flex-col gap-1 w-8 text-xs text-neutral-500 pt-0 dark:text-neutral-400">
-                                <div className="h-3"></div> {/* spacer */}
                                 <div className="h-3">Mon</div>
-                                <div className="h-3"></div>
+                                <div className="h-3">Tue</div>
                                 <div className="h-3">Wed</div>
-                                <div className="h-3"></div>
+                                <div className="h-3">Thu</div>
                                 <div className="h-3">Fri</div>
-                                <div className="h-3"></div>
+                                <div className="h-3">Sat</div>
+                                <div className="h-3">Sun</div>
                             </div>
 
                             {/* Grid */}

@@ -28,7 +28,7 @@ export const PortfolioDock = ({ email, sections = { about: true, education: true
         { icon: <GraduationCap className="w-6 h-6" />, label: "Education", onClick: () => handleScrollTo("education"), show: sections.education },
         { icon: <Briefcase className="w-6 h-6" />, label: "Career", onClick: () => handleScrollTo("career"), show: sections.career },
         { icon: <Code className="w-6 h-6" />, label: "Projects", onClick: () => handleScrollTo("work"), show: sections.projects },
-        { icon: <Mail className="w-6 h-6" />, label: "Contact", onClick: () => window.location.href = `mailto:${email || ""}`, show: true },
+        { icon: <Mail className="w-6 h-6" />, label: "Contact", onClick: () => handleScrollTo("contact"), show: true },
     ];
 
     const dockItems = allDockItems.filter(item => item.show !== false);

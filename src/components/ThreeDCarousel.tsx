@@ -91,34 +91,76 @@ const ThreeDCarousel = ({
         }
     };
 
-    const getCardStyle = (index: number) => {
+    const getCardStyle = (index: number): React.CSSProperties => {
         const total = items.length;
 
         // If only one item, keep it centered without any transforms
         if (total === 1) {
-            return "scale-100 opacity-100 z-20 translate-x-0 blur-0";
+            return {
+                transform: "scale(1) translateX(0)",
+                opacity: 1,
+                zIndex: 30,
+                filter: "blur(0px)",
+                visibility: "visible"
+            };
         }
 
         // Calculate relative position based on active index
-        // We want to handle wrapping correctly
         let relativeIdx = (index - active + total) % total;
 
-        // Adjust logic to handle "previous" item correctly in circular list
-        // If it's the last item relative to active, treat as -1
-        if (relativeIdx === total - 1) relativeIdx = -1;
+        // Adjust for circular wrapping to find shortest path
+        if (relativeIdx > total / 2) {
+            relativeIdx -= total;
+        }
 
-        if (relativeIdx === 0) {
+        // Configuration for stack depth - INCREASED VISIBILITY
+        const VISIBLE_DEPTH_LIMIT = 3; // Max cards we WANT to show
+        const maxVisibleOnSide = Math.floor((total - 1) / 2); // Theoretical max for symmetry
+        const VISIBLE_DEPTH = Math.min(VISIBLE_DEPTH_LIMIT, maxVisibleOnSide); // Actual limit
+
+        const X_OFFSET = 18; // Percentage offset for each step
+        const SCALE_STEP = 0.05; // Scale reduction per step
+        const OPACITY_STEP = 0.15; // Opacity reduction per step
+        const BLUR_STEP = 1; // Blur increase per step
+
+        const absIdx = Math.abs(relativeIdx);
+
+        if (absIdx === 0) {
             // Active card
-            return "scale-100 opacity-100 z-20 translate-x-0 blur-0";
-        } else if (relativeIdx === 1) {
-            // Next card
-            return "translate-x-[40%] scale-90 opacity-60 z-10 blur-[1px]";
-        } else if (relativeIdx === -1) {
-            // Previous card
-            return "translate-x-[-40%] scale-90 opacity-60 z-10 blur-[1px]";
+            return {
+                transform: "scale(1) translateX(0)",
+                opacity: 1,
+                zIndex: 30,
+                filter: "blur(0px)",
+                visibility: "visible",
+                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)" // shadow-2xl equivalent
+            };
+        } else if (absIdx <= VISIBLE_DEPTH) {
+            // Visible stack cards
+            const direction = Math.sign(relativeIdx); // 1 for right (next), -1 for left (prev)
+            const scale = 1 - (absIdx * SCALE_STEP);
+            const opacity = 1 - (absIdx * OPACITY_STEP);
+            const translateX = direction * (45 + (absIdx - 1) * X_OFFSET); // Increased base offset to 45%
+            const zIndex = 30 - absIdx;
+            const blur = absIdx * BLUR_STEP;
+
+            return {
+                transform: `translateX(${translateX}%) scale(${scale})`,
+                opacity: opacity,
+                zIndex: zIndex,
+                filter: `blur(${blur}px)`,
+                visibility: "visible"
+            };
         } else {
             // Hidden cards
-            return "scale-75 opacity-0 z-0 blur-md pointer-events-none"; // Hidden
+            return {
+                transform: "scale(0.5) translateX(0)",
+                opacity: 0,
+                zIndex: 0,
+                filter: "blur(20px)",
+                visibility: "hidden",
+                pointerEvents: "none"
+            };
         }
     };
 
@@ -144,7 +186,8 @@ const ThreeDCarousel = ({
                         {items.map((item, index) => (
                             <div
                                 key={item.id}
-                                className={`absolute w-full max-w-sm md:max-w-md transition-all duration-700 ease-out origin-center cursor-pointer group ${getCardStyle(index)}`}
+                                className={`absolute w-full max-w-sm md:max-w-md transition-all duration-700 ease-out origin-center cursor-pointer group`}
+                                style={getCardStyle(index)}
                                 onClick={() => setActive(index)}
                             >
                                 {/* Mesh Gradient Glow Container */}
@@ -215,7 +258,7 @@ const ThreeDCarousel = ({
                                                     {item.tags.slice(0, 4).map((tag, idx) => (
                                                         <span
                                                             key={idx}
-                                                            className="px-2.5 py-1 bg-secondary text-secondary-foreground rounded-full text-xs font-medium"
+                                                            className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm font-medium"
                                                         >
                                                             {tag}
                                                         </span>

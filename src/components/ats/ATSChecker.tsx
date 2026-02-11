@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 "use client";
 
 import { useState, useEffect } from "react";
@@ -227,7 +227,7 @@ export function ATSChecker() {
                             y += 6;
                             exp.description.forEach((bullet) => {
                                 checkPageBreak(10);
-                                const bulletLines = doc.splitTextToSize(`• ${bullet}`, pageWidth - 2 * margin - 5);
+                                const bulletLines = doc.splitTextToSize(`â€¢ ${bullet}`, pageWidth - 2 * margin - 5);
                                 bulletLines.forEach((line: string, idx: number) => {
                                     doc.text(line, margin + (idx > 0 ? 5 : 0), y);
                                     y += 5;
@@ -272,7 +272,7 @@ export function ATSChecker() {
                         y += 8;
                         doc.setFontSize(10);
                         doc.setFont('helvetica', 'normal');
-                        const skillsText = structuredResume.skills.join(' • ');
+                        const skillsText = structuredResume.skills.join(' â€¢ ');
                         const skillLines = doc.splitTextToSize(skillsText, pageWidth - 2 * margin);
                         skillLines.forEach((line: string) => {
                             checkPageBreak(6);
@@ -493,7 +493,7 @@ export function ATSChecker() {
                                     size="lg"
                                 >
                                     <Sparkles className="mr-2 h-5 w-5" />
-                                    👁️ Preview Portfolio
+                                    ðŸ‘ï¸ Preview Portfolio
                                 </Button>
                             </div>
 
@@ -687,3 +687,4 @@ function getScoreTextColor(score: number) {
     if (score >= 60) return "text-yellow-600 dark:text-yellow-400";
     return "text-red-600 dark:text-red-400";
 }
+

@@ -75,15 +75,15 @@ export const HeroSection = ({ userData }: HeroSectionProps) => {
                     }}
                 >
                     {userData?.skills?.soft?.slice(0, 3).map((skill: any, index: number) => (
-                        <Badge key={index} className="text-xs bg-pink-500 hover:bg-pink-600 transition-colors">
+                        <Badge key={index} className="text-base px-4 py-1.5 bg-pink-500 hover:bg-pink-600 transition-colors">
                             {typeof skill === 'string' ? skill : skill.name}
                         </Badge>
                     ))}
                     {!userData?.skills?.soft && (
                         <>
-                            <Badge className="text-xs bg-pink-500">Team Lead</Badge>
-                            <Badge className="text-xs bg-pink-500">Problem Solving</Badge>
-                            <Badge className="text-xs bg-pink-500">Decision Making</Badge>
+                            <Badge className="text-base px-4 py-1.5 bg-pink-500">Team Lead</Badge>
+                            <Badge className="text-base px-4 py-1.5 bg-pink-500">Problem Solving</Badge>
+                            <Badge className="text-base px-4 py-1.5 bg-pink-500">Decision Making</Badge>
                         </>
                     )}
                 </motion.div>

@@ -17,6 +17,10 @@ import { CareerTimeline } from "@/components/portfolio-layout/ui/CareerTimeline"
 import { PortfolioDock } from "@/components/portfolio-layout/ui/PortfolioDock";
 import { FeaturedWork } from "@/components/portfolio-layout/FeaturedWork";
 import { ShareButton } from "@/components/portfolio-layout/ShareButton";
+import { CodingStats } from "@/components/portfolio-layout/CodingStats";
+import { ContributionActivity } from "@/components/portfolio-layout/ContributionActivity";
+import { ContactSection } from "@/components/portfolio-layout/ui/ContactSection";
+import { Code } from "lucide-react";
 
 export default function PortfolioPreviewPage() {
     const [data, setData] = useState<any>(null);
@@ -29,6 +33,11 @@ export default function PortfolioPreviewPage() {
     const [githubUsername, setGithubUsername] = useState<string | null>(null);
     const [githubAvatar, setGithubAvatar] = useState<string>("");
     const [githubData, setGithubData] = useState<any[]>([]);
+    const [leetcodeUsername, setLeetcodeUsername] = useState("");
+    const [codeforcesUsername, setCodeforcesUsername] = useState("");
+    const [showConnectDialog, setShowConnectDialog] = useState(false);
+    const [fetchedStats, setFetchedStats] = useState<any>(null);
+    const [refreshingStats, setRefreshingStats] = useState(false);
 
     useEffect(() => {
         const storedData = localStorage.getItem("portfolioPreviewData");
@@ -41,16 +50,13 @@ export default function PortfolioPreviewPage() {
                 if (parsed.externalData?.github) {
                     console.log("Found GitHub username in externalData:", parsed.externalData.github);
                     setGithubUsername(parsed.externalData.github);
-                } else if (parsed.personalInfo?.contact) {
-                    const match = parsed.personalInfo.contact.match(/github\.com\/([a-zA-Z0-9-]+)/);
-                    if (match) {
-                        console.log("Found GitHub username in contact:", match[1]);
-                        setGithubUsername(match[1]);
-                    } else {
-                        console.log("No GitHub username found in contact info");
-                    }
-                } else {
-                    console.log("No contact info to parse for GitHub username");
+                }
+
+                if (parsed.externalData?.leetcode) {
+                    setLeetcodeUsername(parsed.externalData.leetcode);
+                }
+                if (parsed.externalData?.codeforces) {
+                    setCodeforcesUsername(parsed.externalData.codeforces);
                 }
             } catch (e) {
                 console.error("Failed to parse portfolio data", e);
@@ -58,6 +64,34 @@ export default function PortfolioPreviewPage() {
         }
         setLoading(false);
     }, []);
+
+    // Auto-fetch stats when usernames are available
+    useEffect(() => {
+        if (!leetcodeUsername && !codeforcesUsername && !githubUsername) return;
+
+        const loadStats = async () => {
+            setRefreshingStats(true);
+            try {
+                const res = await fetch("/api/fetch-stats", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        leetcodeUsername,
+                        codeforcesUsername,
+                        githubUsername
+                    })
+                });
+                const data = await res.json();
+                setFetchedStats(data);
+            } catch (e) {
+                console.error("Failed to fetch stats", e);
+            } finally {
+                setRefreshingStats(false);
+            }
+        };
+
+        loadStats();
+    }, [leetcodeUsername, codeforcesUsername, githubUsername]);
 
     // Fetch GitHub Data (Profile & Repos)
     useEffect(() => {
@@ -85,6 +119,8 @@ export default function PortfolioPreviewPage() {
             .catch(e => console.error("Failed to fetch repos", e));
     }, [githubUsername]);
 
+
+
     if (loading) {
         return <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white"><Loader2 className="animate-spin mr-2" /> Loading portfolio...</div>;
     }
@@ -104,14 +140,16 @@ export default function PortfolioPreviewPage() {
     }
 
     // Map data to new component structure
+    const topSkills = data.skills?.slice(0, 3).join(", ");
+
     const userData = {
         personalInfo: {
             name: data.personalInfo.name,
             role: "Software Engineer", // Default
-            headline: data.personalInfo.summary?.slice(0, 100) + "..." || "Building the digital future.",
+            headline: topSkills ? `Specializing in ${topSkills}` : (data.personalInfo.summary?.slice(0, 100) + "..." || "Building the digital future."),
             summary: data.personalInfo.summary,
             aboutMe: data.personalInfo.customAboutMe || data.personalInfo.summary,
-            photoUrl: githubAvatar, // Use fetched GitHub avatar
+            photoUrl: localStorage.getItem("profilePhoto") || githubAvatar, // Custom photo > GitHub avatar
             location: "",
             email: data.personalInfo.contact?.split('|').find((s: string) => s.includes('@'))?.trim() || undefined,
         },
@@ -147,7 +185,7 @@ export default function PortfolioPreviewPage() {
                 {/* Save & Back Buttons */}
                 <div className="fixed top-20 md:top-4 right-2 md:right-4 z-[60] flex gap-1 md:gap-2 items-center">
                     <Link href="/generate">
-                        <Button variant="secondary" size="sm" className="h-9 rounded-lg shadow-lg backdrop-blur-md bg-white/50 dark:bg-black/50 hover:bg-white/80 dark:hover:bg-black/80 px-2 md:px-4">
+                        <Button variant="secondary" size="sm" className="h-9 rounded-lg shadow-lg backdrop-blur-md bg-white/10 hover:bg-white/20 border border-white/20 px-2 md:px-4">
                             <ArrowLeft className="h-4 w-4 md:mr-2" />
                             <span className="hidden md:inline">Edit Data</span>
                         </Button>
@@ -155,7 +193,7 @@ export default function PortfolioPreviewPage() {
                     <Button
                         size="sm"
                         onClick={() => setShowSaveDialog(true)}
-                        className="h-9 rounded-lg shadow-lg bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white border-0 px-2 md:px-4"
+                        className="h-9 rounded-lg shadow-lg bg-blue-600 hover:bg-blue-700 text-white border-0 px-2 md:px-4"
                     >
                         <Save className="h-4 w-4 md:mr-2" />
                         <span className="hidden sm:inline">Save Portfolio</span>
@@ -185,17 +223,24 @@ export default function PortfolioPreviewPage() {
                         <FeaturedWork projects={projects} username={githubUsername || "user"} />
                     )}
 
-                    {userData.personalInfo.email && (
-                        <div className="text-center py-10 pb-20">
-                            <p className="text-gray-500 mb-2 font-medium">Get in touch</p>
-                            <a
-                                href={`mailto:${userData.personalInfo.email}`}
-                                className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-80 transition-opacity"
-                            >
-                                {userData.personalInfo.email}
-                            </a>
+                    {/* Stats Section - Conditioned on usernames being present */}
+                    {(leetcodeUsername || codeforcesUsername || githubUsername) && fetchedStats && (
+                        <div className="space-y-20">
+                            {(leetcodeUsername || codeforcesUsername) && (
+                                <CodingStats
+                                    leetCode={leetcodeUsername ? fetchedStats.leetCodeStats : null}
+                                    codeforces={codeforcesUsername ? fetchedStats.codeforcesStats : null}
+                                />
+                            )}
+                            {githubUsername && fetchedStats.githubContributions && (
+                                <ContributionActivity weeks={fetchedStats.githubContributions} />
+                            )}
                         </div>
                     )}
+
+
+                    {/* Replaced simple contact div with new ContactSection */}
+                    <ContactSection userData={userData} />
                 </main>
 
                 <div className="fixed bottom-8 left-0 right-0 z-50 flex justify-center pointer-events-none">
@@ -219,6 +264,12 @@ export default function PortfolioPreviewPage() {
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Save Portfolio</h2>
                             <p className="text-gray-600 dark:text-gray-300">Give your portfolio a name to save it to your dashboard</p>
 
+
+
+                            // ... existing useEffects ...
+
+                            // ... render ...
+
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Portfolio Name</label>
                                 <input
@@ -229,6 +280,29 @@ export default function PortfolioPreviewPage() {
                                     className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-neutral-700 dark:text-white"
                                     autoFocus
                                 />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">LeetCode Username</label>
+                                    <input
+                                        type="text"
+                                        value={leetcodeUsername}
+                                        onChange={(e) => setLeetcodeUsername(e.target.value)}
+                                        placeholder="Optional"
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-neutral-700 dark:text-white"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">CodeForces Username</label>
+                                    <input
+                                        type="text"
+                                        value={codeforcesUsername}
+                                        onChange={(e) => setCodeforcesUsername(e.target.value)}
+                                        placeholder="Optional"
+                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-neutral-700 dark:text-white"
+                                    />
+                                </div>
                             </div>
 
                             <div className="flex gap-3 pt-4">
@@ -259,6 +333,8 @@ export default function PortfolioPreviewPage() {
                                                 body: JSON.stringify({
                                                     ...data,
                                                     portfolioName: portfolioName.trim(),
+                                                    leetcodeUsername: leetcodeUsername.trim() || undefined,
+                                                    codeforcesUsername: codeforcesUsername.trim() || undefined,
                                                 }),
                                             });
 
@@ -289,6 +365,7 @@ export default function PortfolioPreviewPage() {
                         </div>
                     </div>
                 )}
+
             </div>
         </ReactLenis>
     );

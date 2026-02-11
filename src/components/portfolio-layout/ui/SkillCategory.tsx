@@ -112,7 +112,7 @@ export default function ProfessionalProfile({ userData }: ProfessionalProfilePro
                                         transition={{ type: "spring", stiffness: 200, damping: 10 }}
                                         viewport={{ once: true }}
                                     >
-                                        <Badge className="bg-pink-500 hover:bg-pink-600 transition-colors cursor-default">{skill}</Badge>
+                                        <Badge className="bg-pink-500 hover:bg-pink-600 transition-colors cursor-default text-base px-4 py-1.5">{skill}</Badge>
                                     </motion.div>
                                 ))}
                             </AnimatePresence>

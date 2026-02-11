@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, Loader2, ArrowRight } from "lucide-react";
+import { Upload, FileText, Loader2, ArrowRight, User } from "lucide-react";
 
 export default function GeneratePortfolioPage() {
     const [file, setFile] = useState<File | null>(null);
+    const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+    const [profilePhotoPreview, setProfilePhotoPreview] = useState<string>("");
     const [githubUsername, setGithubUsername] = useState("");
     const [leetcodeUsername, setLeetcodeUsername] = useState("");
     const [codeforcesUsername, setCodeforcesUsername] = useState("");
@@ -114,6 +116,14 @@ export default function GeneratePortfolioPage() {
 
             // 4. Save and Redirect
             localStorage.setItem("portfolioPreviewData", JSON.stringify(portfolioData));
+
+            // Save profile photo as base64 if uploaded
+            if (profilePhotoPreview) {
+                localStorage.setItem("profilePhoto", profilePhotoPreview);
+            } else {
+                localStorage.removeItem("profilePhoto");
+            }
+
             window.location.href = "/portfolio/preview";
 
         } catch (error: any) {
@@ -122,6 +132,34 @@ export default function GeneratePortfolioPage() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = e.target.files?.[0];
+        if (selectedFile) {
+            setFile(selectedFile);
+        }
+    };
+
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = e.target.files?.[0];
+        if (selectedFile && selectedFile.type.startsWith("image/")) {
+            setProfilePhoto(selectedFile);
+
+            // Convert to base64 for preview and storage
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProfilePhotoPreview(reader.result as string);
+            };
+            reader.readAsDataURL(selectedFile);
+        } else if (selectedFile) {
+            alert("Please select a valid image file.");
+        }
+    };
+
+    const removePhoto = () => {
+        setProfilePhoto(null);
+        setProfilePhotoPreview("");
     };
 
     return (
@@ -151,7 +189,7 @@ export default function GeneratePortfolioPage() {
                             {/* GitHub Profile */}
                             <div className="space-y-2">
                                 <Label htmlFor="github" className="text-gray-700 dark:text-white flex items-center gap-1">
-                                    GitHub Profile {!file && <span className="text-red-500 dark:text-red-400">*</span>}
+                                    GitHub Profile <span className="text-sm font-normal text-gray-500 dark:text-gray-400">(Recommended)</span>
                                 </Label>
                                 <Input
                                     id="github"
@@ -160,6 +198,49 @@ export default function GeneratePortfolioPage() {
                                     onChange={(e) => setGithubUsername(e.target.value)}
                                     className="bg-white dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-blue-500 focus:ring-blue-500/20"
                                 />
+                            </div>
+
+                            {/* Profile Photo Upload */}
+                            <div className="space-y-2">
+                                <Label htmlFor="photo" className="text-gray-700 dark:text-white flex items-center gap-1">
+                                    Profile Photo <span className="text-sm font-normal text-gray-500 dark:text-gray-400">(Optional)</span>
+                                </Label>
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        id="photo"
+                                        accept="image/*"
+                                        onChange={handlePhotoChange}
+                                        className="hidden"
+                                    />
+                                    {!profilePhotoPreview ? (
+                                        <label
+                                            htmlFor="photo"
+                                            className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-white/20 rounded-xl cursor-pointer bg-white dark:bg-white/5 hover:bg-gray-50 dark:hover:bg-white/10 transition-all"
+                                        >
+                                            <User className="w-8 h-8 text-gray-400 dark:text-gray-500 mb-2" />
+                                            <span className="text-sm text-gray-500 dark:text-gray-400">Click to upload photo</span>
+                                            <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">Fallback: GitHub profile picture</span>
+                                        </label>
+                                    ) : (
+                                        <div className="relative w-full h-32 border-2 border-gray-300 dark:border-white/20 rounded-xl overflow-hidden">
+                                            <img
+                                                src={profilePhotoPreview}
+                                                alt="Profile preview"
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={removePhoto}
+                                                className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg transition-all"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
                             {/* LeetCode & Codeforces */}
@@ -202,7 +283,7 @@ export default function GeneratePortfolioPage() {
                             <div className="space-y-2">
                                 <Label className="text-gray-700 dark:text-white flex items-center gap-2">
                                     <Upload className="w-4 h-4" />
-                                    Resume Upload (PDF) {!githubUsername && <span className="text-red-500 dark:text-red-400">*</span>}
+                                    Resume Upload (PDF) <span className="text-sm font-normal text-gray-500 dark:text-gray-400">(Best results with both)</span>
                                 </Label>
                                 <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 dark:border-white/20 rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 hover:border-blue-500 transition-all bg-white dark:bg-white/5 group">
                                     <input
@@ -219,7 +300,7 @@ export default function GeneratePortfolioPage() {
                                     ) : (
                                         <div className="flex flex-col items-center text-gray-400 dark:text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300">
                                             <Upload className="size-8 mb-2" />
-                                            <span className="text-sm">Click to upload</span>
+                                            <span className="text-sm">Click to upload or drag and drop</span>
                                         </div>
                                     )}
                                 </label>

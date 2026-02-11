@@ -19,6 +19,8 @@ import { CareerTimeline } from "@/components/portfolio-layout/ui/CareerTimeline"
 import { PortfolioDock } from "@/components/portfolio-layout/ui/PortfolioDock";
 import { FeaturedWork } from "@/components/portfolio-layout/FeaturedWork";
 import { ShareButton } from "@/components/portfolio-layout/ShareButton";
+import { ContributionActivity } from "@/components/portfolio-layout/ContributionActivity";
+import { CodingStats } from "@/components/portfolio-layout/CodingStats";
 
 
 // Helper to get resume data
@@ -77,6 +79,18 @@ export default async function PortfolioPage({ params }: { params: Promise<{ user
         getGitHubProfile(username),
         getGitHubRepos(username),
         getResumeData(username)
+    ]);
+
+    // Determine usernames for stats (fallback to GitHub username if not in DB)
+    const leetCodeUsername = resumeData?.leetCodeUser || username;
+    const codeforcesUsername = resumeData?.codeforcesUser || username;
+
+    console.log(`[Portfolio] Fetching stats for LeetCode: ${leetCodeUsername}, CodeForces: ${codeforcesUsername}`);
+
+    const [leetCodeStats, codeforcesStats, githubContributions] = await Promise.all([
+        getLeetCodeStats(leetCodeUsername),
+        getCodeforcesStats(codeforcesUsername),
+        getGitHubContributions(username)
     ]);
 
     if (!profile && !resumeData) {
@@ -152,6 +166,9 @@ export default async function PortfolioPage({ params }: { params: Promise<{ user
                     <EducationSection userData={userData} />
                     <SkillsSection userData={userData} />
                     <CareerTimeline userData={userData} />
+
+                    <CodingStats leetCode={leetCodeStats} codeforces={codeforcesStats} />
+                    <ContributionActivity weeks={githubContributions || []} />
 
                     {projects.length > 0 && (
                         <FeaturedWork projects={projects} username={username} />

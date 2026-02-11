@@ -65,7 +65,7 @@ export function ShareButton({ portfolioUrl, userName, title = "Check out my port
                 onClick={() => setIsOpen(!isOpen)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-2 px-3 md:px-4 h-9 bg-purple-600 dark:bg-purple-700 hover:bg-purple-700 dark:hover:bg-purple-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                className="flex items-center gap-2 px-3 md:px-4 h-9 bg-purple-600 hover:bg-purple-700 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
             >
                 <Share2 className="w-4 h-4" />
                 <span className="font-medium hidden sm:inline">Share</span>

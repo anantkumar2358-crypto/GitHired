@@ -59,7 +59,7 @@ export function FeaturedWork({ projects, username }: FeaturedWorkProps) {
                 <div className="mt-8">
                     <ThreeDCarousel
                         items={carouselItems}
-                        rotateInterval={2000}
+                        rotateInterval={3000} // Increased slightly for better viewing
                         title="My Projects"
                         subtitle="Featured Work"
                         tagline="Explore my latest work"

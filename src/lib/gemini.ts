@@ -5,7 +5,7 @@ import path from "path";
 
 const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 if (!apiKey) {
-    console.warn("WARN: NEXT_PUBLIC_GEMINI_API_KEY is not set. AI features will be disabled.");
+    console.warn("WARN: NEXT_PUBLIC_GEMINI_API_KEY is not set. Enhanced features will be disabled.");
 }
 const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null;
 const model = genAI ? genAI.getGenerativeModel({ model: "gemini-2.0-flash" }) : null;
@@ -137,7 +137,6 @@ export async function parseResumeWithGemini(resumeText: string): Promise<ResumeD
     }
 
     const prompt = `
-    You are an AI expert at parsing resumes. 
     Extract the following information from the provided resume text and return it ONLY as a valid JSON object.
     Do not include markdown formatting like \`\`\`json. Just the raw JSON string.
     
@@ -253,7 +252,7 @@ export async function generateProjectDocs(readme: string, name: string): Promise
     }
 
     const prompt = `
-    You are a technical writer. Generate a professional documentation section for the project '${name}'.
+    Generate a professional documentation section for the project '${name}'.
     Use the existing README content as a base, but structure it better.
     
     Existing README:

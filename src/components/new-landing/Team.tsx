@@ -25,7 +25,7 @@ const team = [
         github: "https://github.com/anantkumar2358-crypto"
     },
     {
-        image: "/team/om.jpg",
+        image: "/team/om-new.jpg",
         title: "OM L. S.",
         subtitle: "UI/UX Designer",
         handle: "@omls",
