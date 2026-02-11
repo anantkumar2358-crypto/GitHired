@@ -1,6 +1,7 @@
 "use client";
 
 import { Sparkles, Github, Linkedin, Twitter, Mail } from "lucide-react";
+import NextImage from "next/image";
 
 export function Footer() {
     return (
@@ -10,10 +11,13 @@ export function Footer() {
                     {/* Brand */}
                     <div className="md:col-span-2">
                         <div className="flex items-center gap-2 mb-4">
-                            <div className="size-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
-                                <Sparkles className="size-5 text-white" />
-                            </div>
-                            <span className="font-semibold text-xl text-white">Portfolio Gen</span>
+                            <NextImage
+                                src="/logo.png"
+                                alt="GitHired"
+                                width={150}
+                                height={50}
+                                className="h-12 w-auto object-contain scale-[2.2] origin-left dark:invert"
+                            />
                         </div>
                         <p className="text-slate-400 mb-6 max-w-md">
                             An autonomous AI-powered tool that transforms your resume and digital footprint
@@ -84,7 +88,7 @@ export function Footer() {
                 <div className="border-t border-slate-800 pt-8">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                         <p className="text-slate-400 text-sm">
-                            © 2026 Portfolio Gen. All rights reserved.
+                            © 2026 GitHired. All rights reserved.
                         </p>
                         <div className="flex gap-6 text-sm">
                             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>

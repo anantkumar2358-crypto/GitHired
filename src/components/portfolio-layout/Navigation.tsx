@@ -14,27 +14,14 @@ const navItems = [
 ];
 
 export function Navigation() {
-    const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50);
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
 
     return (
         <motion.nav
             initial={{ y: -100 }}
             animate={{ y: 0 }}
             transition={{ duration: 0.6 }}
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-                ? 'bg-white/95 backdrop-blur-sm border-b border-neutral-200 shadow-sm dark:bg-neutral-900/95 dark:border-neutral-800'
-                : 'bg-white dark:bg-neutral-900'
-                }`}
+            className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border"
         >
             <div className="max-w-7xl mx-auto px-6 py-4">
                 <div className="flex items-center justify-between">
@@ -42,15 +29,16 @@ export function Navigation() {
                     <motion.a
                         href="#home"
                         whileHover={{ scale: 1.05 }}
-                        className="text-2xl text-neutral-900 font-bold dark:text-white"
+                        className="text-2xl font-bold text-foreground flex items-center gap-2"
                     >
-                        <div className="relative w-10 h-10">
+                        <div className="relative w-8 h-8">
                             <img
                                 src="/logo.svg"
                                 alt="Dev Logo"
-                                className="w-full h-full object-contain"
+                                className="w-full h-full object-contain dark:invert"
                             />
                         </div>
+                        <span>Dev</span>
                     </motion.a>
 
                     {/* Desktop Navigation */}
@@ -59,15 +47,15 @@ export function Navigation() {
                             <a
                                 key={item.label}
                                 href={item.href}
-                                className="text-neutral-600 hover:text-neutral-900 transition-colors duration-300 relative group text-sm font-medium dark:text-neutral-400 dark:hover:text-neutral-100"
+                                className="text-muted-foreground hover:text-foreground transition-colors duration-300 relative group text-sm font-medium"
                             >
                                 {item.label}
-                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300" />
+                                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary group-hover:w-full transition-all duration-300" />
                             </a>
                         ))}
                         <a
                             href="#contact"
-                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 text-sm font-medium"
+                            className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg transition-all duration-300 text-sm font-medium shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                         >
                             Hire Me
                         </a>
@@ -79,7 +67,7 @@ export function Navigation() {
                         <ThemeToggle />
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            className="w-10 h-10 flex items-center justify-center bg-neutral-100 rounded-lg border border-neutral-200 text-neutral-600 hover:text-neutral-900 transition-colors duration-300 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-100"
+                            className="w-10 h-10 flex items-center justify-center bg-muted rounded-lg border border-border text-muted-foreground hover:text-foreground transition-colors duration-300"
                         >
                             {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                         </button>
@@ -92,15 +80,15 @@ export function Navigation() {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="md:hidden mt-4 pt-4 border-t border-neutral-200 overflow-hidden dark:border-neutral-800"
+                        className="md:hidden mt-4 pt-4 border-t border-border overflow-hidden bg-background/95 backdrop-blur-sm rounded-b-lg"
                     >
-                        <div className="flex flex-col gap-4 pb-4">
+                        <div className="flex flex-col gap-4 pb-4 px-2">
                             {navItems.map((item) => (
                                 <a
                                     key={item.label}
                                     href={item.href}
                                     onClick={() => setIsMobileMenuOpen(false)}
-                                    className="text-neutral-600 hover:text-neutral-900 transition-colors duration-300 py-2 text-sm font-medium dark:text-neutral-400 dark:hover:text-neutral-100"
+                                    className="text-muted-foreground hover:text-foreground transition-colors duration-300 py-2 text-sm font-medium"
                                 >
                                     {item.label}
                                 </a>
@@ -108,7 +96,7 @@ export function Navigation() {
                             <a
                                 href="#contact"
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className="px-6 py-2 bg-blue-600 text-white rounded-lg text-center hover:bg-blue-700 transition-all duration-300 text-sm font-medium"
+                                className="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg text-center transition-all duration-300 text-sm font-medium shadow-md"
                             >
                                 Hire Me
                             </a>

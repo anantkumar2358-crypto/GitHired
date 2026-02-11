@@ -67,18 +67,18 @@ export function GeneratorForm() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white/80 backdrop-blur-xl p-6 md:p-8 rounded-2xl border border-white/20 shadow-2xl relative overflow-hidden max-w-lg mx-auto w-full text-left"
+            className="bg-white/80 backdrop-blur-xl p-6 md:p-8 rounded-2xl border border-white/20 shadow-2xl relative overflow-hidden max-w-lg mx-auto w-full text-left dark:bg-neutral-900/80 dark:border-white/10"
         >
             <form onSubmit={handleSubmit} className="flex flex-col gap-5 relative z-10">
                 <div className="space-y-2">
-                    <Label className="text-slate-600 font-semibold flex items-center gap-2">
+                    <Label className="text-muted-foreground font-semibold flex items-center gap-2">
                         <Github size={16} /> GitHub Profile <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
                         <Input
                             type="text"
                             placeholder="your-username"
-                            className="pl-4 pr-10 bg-white border-slate-200 focus:border-purple-500 focus:ring-purple-200"
+                            className="pl-4 pr-10 bg-background border-input focus:border-purple-500 focus:ring-purple-200 dark:bg-neutral-800 dark:border-neutral-700"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
@@ -88,21 +88,21 @@ export function GeneratorForm() {
 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label className="text-slate-600 font-semibold text-xs uppercase tracking-wide">LeetCode</Label>
+                        <Label className="text-muted-foreground font-semibold text-xs uppercase tracking-wide">LeetCode</Label>
                         <Input
                             type="text"
                             placeholder="Optional"
-                            className="bg-white border-slate-200 focus:border-yellow-500 focus:ring-yellow-200 text-sm"
+                            className="bg-background border-input focus:border-yellow-500 focus:ring-yellow-200 text-sm dark:bg-neutral-800 dark:border-neutral-700"
                             value={leetCodeUser}
                             onChange={(e) => setLeetCodeUser(e.target.value)}
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label className="text-slate-600 font-semibold text-xs uppercase tracking-wide">Codeforces</Label>
+                        <Label className="text-muted-foreground font-semibold text-xs uppercase tracking-wide">Codeforces</Label>
                         <Input
                             type="text"
                             placeholder="Optional"
-                            className="bg-white border-slate-200 focus:border-red-500 focus:ring-red-200 text-sm"
+                            className="bg-background border-input focus:border-red-500 focus:ring-red-200 text-sm dark:bg-neutral-800 dark:border-neutral-700"
                             value={codeforcesUser}
                             onChange={(e) => setCodeforcesUser(e.target.value)}
                         />
@@ -110,20 +110,20 @@ export function GeneratorForm() {
                 </div>
 
                 <div className="space-y-2">
-                    <Label className="text-slate-600 font-semibold text-xs uppercase tracking-wide">About Me (Optional)</Label>
+                    <Label className="text-muted-foreground font-semibold text-xs uppercase tracking-wide">About Me (Optional)</Label>
                     <textarea
                         placeholder="Write a short bio about yourself..."
-                        className="w-full min-h-[100px] p-3 rounded-lg bg-white border border-slate-200 focus:border-purple-500 focus:ring-purple-200 text-sm resize-none"
+                        className="w-full min-h-[100px] p-3 rounded-lg bg-background border border-input focus:border-purple-500 focus:ring-purple-200 text-sm resize-none dark:bg-neutral-800 dark:border-neutral-700"
                         value={aboutMe}
                         onChange={(e) => setAboutMe(e.target.value)}
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <Label className="text-slate-600 font-semibold flex items-center gap-2">
+                    <Label className="text-muted-foreground font-semibold flex items-center gap-2">
                         <Upload size={16} /> Resume Upload (PDF)
                     </Label>
-                    <label className="flex items-center justify-center w-full h-20 border-2 border-dashed border-slate-200 rounded-xl cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-all group relative overflow-hidden bg-slate-50">
+                    <label className="flex items-center justify-center w-full h-20 border-2 border-dashed border-input rounded-xl cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition-all group relative overflow-hidden bg-muted/50 dark:hover:bg-purple-900/20">
                         <input
                             type="file"
                             accept=".pdf"

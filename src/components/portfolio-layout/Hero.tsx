@@ -64,18 +64,26 @@ export function Hero({ name, headline, summary, socialLinks }: HeroProps) {
                     transition={{ duration: 0.8, delay: 0.6 }}
                     className="flex items-center justify-center gap-4 mb-16"
                 >
-                    <Link
+                    <a
                         href="#contact"
-                        className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 font-medium"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-300 font-medium shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
                     >
                         Get in touch
-                    </Link>
-                    <Link
+                    </a>
+                    <a
                         href="#work"
-                        className="px-8 py-4 bg-white text-neutral-900 rounded-lg border border-neutral-200 hover:border-neutral-300 hover:shadow-sm transition-all duration-300 font-medium dark:bg-neutral-800 dark:text-white dark:border-neutral-700 dark:hover:bg-neutral-700"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            document.getElementById('work')?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                        className="px-8 py-4 bg-white text-neutral-900 rounded-lg border border-neutral-200 hover:border-neutral-300 hover:shadow-sm transition-all duration-300 font-medium dark:bg-neutral-800 dark:text-white dark:border-neutral-700 dark:hover:bg-neutral-700 hover:scale-105 cursor-pointer"
                     >
                         View my work
-                    </Link>
+                    </a>
                 </motion.div>
 
                 <motion.div

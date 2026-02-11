@@ -5,30 +5,30 @@ import { extractInterestsWithAI, enhanceBio } from "@/lib/groq";
 import { getPortfolioData } from "@/lib/db-queries";
 import fs from "fs/promises";
 import path from "path";
+import ReactLenis from "lenis/react";
 
-// Import new portfolio components
-import "../portfolio-theme.css";
-import { Navigation } from "@/components/portfolio-layout/Navigation";
-import { Hero } from "@/components/portfolio-layout/Hero";
-import { About } from "@/components/portfolio-layout/About";
-import { TechnicalArsenal } from "@/components/portfolio-layout/TechnicalArsenal";
-import { Experience } from "@/components/portfolio-layout/Experience";
-import { CompetitiveProgramming } from "@/components/portfolio-layout/CompetitiveProgramming";
-import { ContributionActivity } from "@/components/portfolio-layout/ContributionActivity";
+// New Portfolio Components
+import Header from "@/components/portfolio-layout/ui/Header";
+import { HeroSection } from "@/components/portfolio-layout/ui/HeroSection";
+import StripedBackground from "@/components/portfolio-layout/ui/lightswind/StripedBackground";
+import { AboutSection } from "@/components/portfolio-layout/ui/AboutSection";
+import { EducationSection } from "@/components/portfolio-layout/ui/EducationSection";
+import SkillsSection from "@/components/portfolio-layout/ui/SkillCategory";
+import { CareerTimeline } from "@/components/portfolio-layout/ui/CareerTimeline";
+// import Dock from "@/components/portfolio-layout/ui/lightswind/dock"; // REPLACED
+import { PortfolioDock } from "@/components/portfolio-layout/ui/PortfolioDock";
 import { FeaturedWork } from "@/components/portfolio-layout/FeaturedWork";
-import { Contact } from "@/components/portfolio-layout/Contact";
-import { Footer } from "@/components/portfolio-layout/Footer";
+import { ShareButton } from "@/components/portfolio-layout/ShareButton";
 
-// Helper to get resume data - tries database first, then falls back to JSON
+
+// Helper to get resume data
 async function getResumeData(username: string) {
     try {
-        // Try database first
         console.log(`[Portfolio] Fetching data for ${username} from database...`);
         const dbData = await getPortfolioData(username);
 
         if (dbData && dbData.resumeData) {
             console.log(`[Portfolio] ✅ Found data in database for ${username}`);
-            // Transform database format to match expected format
             return {
                 username: dbData.user.username,
                 leetCodeUser: dbData.codingStats?.leetcodeUsername || null,
@@ -43,19 +43,21 @@ async function getResumeData(username: string) {
                 },
                 aboutMe: dbData.resumeData.aboutMe || "",
                 personalInfo: {
-                    customAboutMe: dbData.resumeData.aboutMe || "",
+                    name: dbData.resumeData.contactInfo?.split("|")[0]?.trim() || dbData.user.username, // Fallback name extraction
+                    role: "Full Stack Developer", // Default or extract if possible
+                    headline: dbData.resumeData.professionalSummary?.slice(0, 100) + "...",
+                    summary: dbData.resumeData.professionalSummary,
                     contact: dbData.resumeData.contactInfo || "",
+                    aboutMe: dbData.resumeData.aboutMe || "",
                 },
+                skills: dbData.resumeData.skills || {}
             };
         }
-
         console.log(`[Portfolio] ⚠️  No data in database for ${username}, trying JSON fallback...`);
     } catch (error) {
         console.error(`[Portfolio] ❌ Database error for ${username}:`, error);
-        console.log(`[Portfolio] Falling back to JSON file...`);
     }
 
-    // Fallback to JSON file
     try {
         const dataDir = path.join(process.cwd(), "data");
         const filePath = path.join(dataDir, `${username}.json`);
@@ -71,25 +73,13 @@ async function getResumeData(username: string) {
 export default async function PortfolioPage({ params }: { params: Promise<{ username: string }> }) {
     const { username } = await params;
 
-    // 1. Fetch Data (Parallel for performance)
     const [profile, repos, resumeData] = await Promise.all([
         getGitHubProfile(username),
         getGitHubRepos(username),
         getResumeData(username)
     ]);
 
-    // Fetch Coding Stats if usernames are available
-    const leetCodeUser = resumeData?.leetCodeUser;
-    const codeforcesUser = resumeData?.codeforcesUser;
-
-    // Parallel fetch for speed
-    const [leetCodeStats, codeforcesStats, contributionData] = await Promise.all([
-        leetCodeUser ? getLeetCodeStats(leetCodeUser) : Promise.resolve(null),
-        codeforcesUser ? getCodeforcesStats(codeforcesUser) : Promise.resolve(null),
-        getGitHubContributions(username)
-    ]);
-
-    if (!profile) {
+    if (!profile && !resumeData) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-slate-900 text-white">
                 <h1>User not found or API rate limited.</h1>
@@ -97,49 +87,48 @@ export default async function PortfolioPage({ params }: { params: Promise<{ user
         );
     }
 
-    // 2. Data Processing & Mapping
-    const topRepos = repos.slice(0, 4);
+    // Data Processing
+    // Safe access to repos in case it's null/empty
+    const safeRepos = repos || [];
+    const topRepos = safeRepos.slice(0, 6);
+    const githubLanguages = Array.from(new Set(safeRepos.map(r => r.language).filter(l => l !== "Unknown")));
+    const resumeSkills = resumeData?.structuredData?.skills || {};
 
-    // Extract top languages from GitHub
-    const githubLanguages = Array.from(new Set(repos.map(r => r.language).filter(l => l !== "Unknown")));
-
-    // Combine with resume skills if available
-    const resumeSkills = resumeData?.structuredData?.skills || [];
-    const allSkills = Array.from(new Set([...githubLanguages, ...resumeSkills]));
+    // Normalize skills for the UI components if needed
+    // The components expect `userData.skills` to be an object with `technical` (array) and `soft` (array/strings)
 
     const professionalSummary = resumeData?.structuredData?.professionalSummary
         ? resumeData.structuredData.professionalSummary
-        : await generateProfessionalSummary(profile.bio, allSkills);
+        : (profile?.bio ? await generateProfessionalSummary(profile.bio, githubLanguages) : "A passionate developer building amazing things.");
 
-    const experience = resumeData?.structuredData?.experience || [];
 
-    // Calculate Years of Experience (Naive)
-    let experienceYears = "1";
-    if (experience.length > 0) {
-        // Try to parse dates. Format could be "Jan 2020 - Present" or "2020-2022"
-        // We'll just take the number of items * 1.5 as a rough guess if we can't parse, or specific logic.
-        // For now, let's look for the earliest year in the strings.
-        const years = experience.map((e: any) => {
-            const match = e.date?.match(/(\d{4})/);
-            return match ? parseInt(match[1]) : new Date().getFullYear();
-        });
-        if (years.length > 0) {
-            const minYear = Math.min(...years);
-            const diff = new Date().getFullYear() - minYear;
-            experienceYears = diff > 0 ? diff.toString() : "1";
+    // Construct userData object for new components
+    const userData = {
+        personalInfo: {
+            name: profile?.name || resumeData?.personalInfo?.name || username,
+            role: profile?.bio ? profile.bio.split(" | ")[0] : (resumeData?.personalInfo?.role || "Software Engineer"),
+            headline: resumeData?.personalInfo?.headline || `Passionate ${profile?.bio ? profile.bio.split(" | ")[0] : (resumeData?.personalInfo?.role || "Software Engineer")}`,
+            summary: professionalSummary,
+            aboutMe: resumeData?.aboutMe || resumeData?.personalInfo?.customAboutMe || null, // Don't fallback to summary
+            photoUrl: profile?.avatar_url || resumeData?.personalInfo?.photoUrl,
+            location: profile?.location || resumeData?.personalInfo?.location,
+            email: profile?.email || resumeData?.personalInfo?.email,
+        },
+        skills: {
+            technical: resumeSkills.technical || githubLanguages.map(lang => ({ name: lang, level: 85 })),
+            soft: resumeSkills.soft || ["Problem Solving", "Collaboration", "Communication"]
+        },
+        education: resumeData?.structuredData?.education || [],
+        workExperience: resumeData?.structuredData?.experience || [],
+        social: {
+            github: profile?.html_url || `https://github.com/${username}`,
+            linkedin: resumeData?.personalInfo?.contact?.split('|').find((s: string) => s.toLowerCase().includes('linkedin'))?.trim(),
+            twitter: profile?.twitter_username ? `https://twitter.com/${profile.twitter_username}` : undefined,
+            email: profile?.email || resumeData?.personalInfo?.email
         }
-    }
-
-    // Social Links
-    const socialLinks = {
-        github: profile.html_url,
-        email: profile.email || undefined,
-        // Try to find LinkedIn in resume contact info if available
-        linkedin: resumeData?.personalInfo?.contact?.split('|').find((s: string) => s.toLowerCase().includes('linkedin'))?.trim() || undefined,
-        twitter: profile.twitter_username ? `https://twitter.com/${profile.twitter_username}` : undefined
     };
 
-    // Map Projects
+    // Map Projects for FeatureWork
     const projects = topRepos.map(repo => ({
         title: repo.name,
         description: repo.description || "No description available.",
@@ -148,109 +137,42 @@ export default async function PortfolioPage({ params }: { params: Promise<{ user
             repo: repo.html_url,
             demo: repo.homepage || undefined
         },
-        featured: repo.stargazers_count > 5 // Simple feature logic
+        featured: repo.stargazers_count > 5
     }));
 
-
-
-    // --- Dynamic About Me Logic with AI-Powered Interest Extraction ---
-    const rawAboutText = resumeData?.aboutMe || resumeData?.personalInfo?.customAboutMe || null;
-
-    let dynamicInterests = undefined;
-    let enhancedAboutText = rawAboutText;
-
-    if (rawAboutText) {
-        try {
-            // Run AI tasks in parallel: Extract interests AND enhance bio text
-            const [extractedInterests, refinedText] = await Promise.all([
-                extractInterestsWithAI(rawAboutText),
-                enhanceBio(rawAboutText)
-            ]);
-
-            if (extractedInterests && extractedInterests.length > 0) {
-                dynamicInterests = extractedInterests;
-            }
-
-            if (refinedText) {
-                enhancedAboutText = refinedText;
-            }
-        } catch (error) {
-            console.error("Error with AI processing (interests/bio):", error);
-            // Fallback: no interests, original text
-        }
-    }
-
-
-
     return (
-        <div className="min-h-screen bg-white">
-            <Navigation />
+        <ReactLenis root>
+            <div className="min-h-screen bg-background relative font-sans antialiased text-foreground overflow-x-hidden selection:bg-pink-500/30">
+                <StripedBackground />
+                <Header />
 
-            <div id="home">
-                <Hero
-                    name={profile.name}
-                    headline={profile.bio || `Building navigation for digital experiences.`}
-                    summary={professionalSummary}
-                    socialLinks={socialLinks}
-                />
+                <main className="relative z-10 flex flex-col gap-20 pb-40">
+                    <HeroSection userData={userData} />
+                    <AboutSection userData={userData} />
+                    <EducationSection userData={userData} />
+                    <SkillsSection userData={userData} />
+                    <CareerTimeline userData={userData} />
+
+                    {projects.length > 0 && (
+                        <FeaturedWork projects={projects} username={username} />
+                    )}
+                </main>
+
+                {/* Share Button */}
+                <div className="fixed top-4 right-4 z-50">
+                    <ShareButton
+                        portfolioUrl={`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/portfolio/${username}`}
+                        userName={userData.personalInfo.name}
+                        title={`Check out ${userData.personalInfo.name}'s portfolio!`}
+                    />
+                </div>
+
+                <div className="fixed bottom-8 left-0 right-0 z-50 flex justify-center pointer-events-none">
+                    <div className="pointer-events-auto">
+                        <PortfolioDock email={userData.personalInfo.email} />
+                    </div>
+                </div>
             </div>
-
-            {/* Only render About if we have explicit about me text OR a summary from resume */}
-            {(enhancedAboutText || professionalSummary) && (
-                <About
-                    summary={enhancedAboutText || professionalSummary}
-                    experienceYears={experienceYears}
-                    projectsCount={profile.public_repos}
-                    avatarUrl={profile.avatar_url}
-                    interests={dynamicInterests}
-                />
-            )}
-
-            {/* Only show Technical Arsenal if we have skills */}
-            {allSkills && allSkills.length > 0 && (
-                <TechnicalArsenal skills={allSkills} />
-            )}
-
-            {experience.length > 0 && (
-                <Experience
-                    experiences={experience.map((exp: any) => ({
-                        title: exp.role,
-                        company: exp.company,
-                        period: exp.date,
-                        description: exp.description,
-                        current: exp.date.toLowerCase().includes('present')
-                        // location is not always in common resume data structure, but we can try
-                    }))}
-                />
-            )}
-
-            {/* Only show Competitive Programming if we have stats */}
-            {(leetCodeStats || codeforcesStats) && (
-                <CompetitiveProgramming
-                    leetCodeStats={leetCodeStats}
-                    codeforcesStats={codeforcesStats}
-                />
-            )}
-
-            {contributionData && (
-                <ContributionActivity weeks={contributionData} />
-            )}
-
-            {/* Only show Featured Work if we have projects */}
-            {projects && projects.length > 0 && (
-                <FeaturedWork
-                    projects={projects}
-                    username={username}
-                />
-            )}
-
-            <Contact
-                email={profile.email || "hello@example.com"}
-                location={profile.location || undefined}
-                socialLinks={socialLinks}
-            />
-
-            <Footer socialLinks={socialLinks} />
-        </div>
+        </ReactLenis>
     );
 }

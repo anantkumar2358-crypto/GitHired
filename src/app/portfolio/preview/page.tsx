@@ -1,40 +1,56 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ResumeData } from "@/components/ats/ResumePreview";
 import Link from "next/link";
-import { ArrowLeft, Github, Linkedin, Mail, ExternalLink, Calendar, MapPin, Briefcase, GraduationCap, Code } from "lucide-react";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ContributionGraph from "@/components/ContributionGraph";
-import LeetCodePieChart from "@/components/LeetCodePieChart";
+import ReactLenis from "lenis/react";
+
+// New Portfolio Components
+import Header from "@/components/portfolio-layout/ui/Header";
+import { HeroSection } from "@/components/portfolio-layout/ui/HeroSection";
+import StripedBackground from "@/components/portfolio-layout/ui/lightswind/StripedBackground";
+import { AboutSection } from "@/components/portfolio-layout/ui/AboutSection";
+import { EducationSection } from "@/components/portfolio-layout/ui/EducationSection";
+import SkillsSection from "@/components/portfolio-layout/ui/SkillCategory";
+import { CareerTimeline } from "@/components/portfolio-layout/ui/CareerTimeline";
+import { PortfolioDock } from "@/components/portfolio-layout/ui/PortfolioDock";
+import { FeaturedWork } from "@/components/portfolio-layout/FeaturedWork";
+import { ShareButton } from "@/components/portfolio-layout/ShareButton";
 
 export default function PortfolioPreviewPage() {
-    const [data, setData] = useState<ResumeData | null>(null);
+    const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [showSaveDialog, setShowSaveDialog] = useState(false);
+    const [portfolioName, setPortfolioName] = useState("");
+    const [saving, setSaving] = useState(false);
 
-    // State for external data
+    // External Data State
     const [githubUsername, setGithubUsername] = useState<string | null>(null);
-    const [leetcodeUsername, setLeetcodeUsername] = useState<string | null>(null);
-    const [githubData, setGithubData] = useState<any>(null);
-    const [leetcodeData, setLeetcodeData] = useState<any>(null);
+    const [githubAvatar, setGithubAvatar] = useState<string>("");
+    const [githubData, setGithubData] = useState<any[]>([]);
 
     useEffect(() => {
-        const storedData = localStorage.getItem("portfolioData");
+        const storedData = localStorage.getItem("portfolioPreviewData");
         if (storedData) {
             try {
                 const parsed = JSON.parse(storedData);
                 setData(parsed);
 
-                // Try to extract usernames from contact info
-                // This is a naive heuristic for MVP
-                if (parsed.personalInfo?.contact) {
-                    const contact = parsed.personalInfo.contact.toLowerCase();
-
-                    const githubMatch = contact.match(/github\.com\/([a-zA-Z0-9-]+)/);
-                    if (githubMatch) setGithubUsername(githubMatch[1]);
-
-                    const leetcodeMatch = contact.match(/leetcode\.com\/([a-zA-Z0-9-]+)/);
-                    if (leetcodeMatch) setLeetcodeUsername(leetcodeMatch[1]);
+                // Extract GitHub username
+                if (parsed.externalData?.github) {
+                    console.log("Found GitHub username in externalData:", parsed.externalData.github);
+                    setGithubUsername(parsed.externalData.github);
+                } else if (parsed.personalInfo?.contact) {
+                    const match = parsed.personalInfo.contact.match(/github\.com\/([a-zA-Z0-9-]+)/);
+                    if (match) {
+                        console.log("Found GitHub username in contact:", match[1]);
+                        setGithubUsername(match[1]);
+                    } else {
+                        console.log("No GitHub username found in contact info");
+                    }
+                } else {
+                    console.log("No contact info to parse for GitHub username");
                 }
             } catch (e) {
                 console.error("Failed to parse portfolio data", e);
@@ -43,239 +59,238 @@ export default function PortfolioPreviewPage() {
         setLoading(false);
     }, []);
 
-    // Fetch GitHub Data
+    // Fetch GitHub Data (Profile & Repos)
     useEffect(() => {
         if (!githubUsername) return;
-        fetch(`/api/github?username=${githubUsername}`)
+
+        // 1. Fetch Profile for Avatar
+        fetch(`https://api.github.com/users/${githubUsername}`)
             .then(res => res.json())
-            .then(data => {
-                if (!data.error) setGithubData(data);
+            .then(profileData => {
+                console.log("GitHub profile data received:", profileData);
+                if (profileData && profileData.avatar_url) {
+                    setGithubAvatar(profileData.avatar_url);
+                }
             })
-            .catch(err => console.error("GitHub fetch error:", err));
+            .catch(err => console.error("GitHub profile fetch error:", err));
+
+        // 2. Fetch Repos for Featured Work
+        fetch(`https://api.github.com/users/${githubUsername}/repos?sort=stars&per_page=6`)
+            .then(r => r.json())
+            .then(repos => {
+                if (Array.isArray(repos)) {
+                    setGithubData(repos);
+                }
+            })
+            .catch(e => console.error("Failed to fetch repos", e));
     }, [githubUsername]);
 
-    // Fetch LeetCode Data
-    useEffect(() => {
-        if (!leetcodeUsername) return;
-        fetch(`/api/leetcode?username=${leetcodeUsername}`)
-            .then(res => res.json())
-            .then(data => {
-                if (!data.error) setLeetcodeData(data);
-            })
-            .catch(err => console.error("LeetCode fetch error:", err));
-    }, [leetcodeUsername]);
-
     if (loading) {
-        return <div className="min-h-screen flex items-center justify-center">Loading portfolio...</div>;
+        return <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white"><Loader2 className="animate-spin mr-2" /> Loading portfolio...</div>;
     }
 
     if (!data) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center space-y-4">
-                <p className="text-xl text-gray-600">No portfolio data found. Go back to ATS Scanner.</p>
-                <Link href="/ats-check">
-                    <Button variant="outline">
+            <div className="min-h-screen flex flex-col items-center justify-center space-y-4 bg-slate-950 text-white">
+                <p className="text-xl">No portfolio data found. Go back to ATS Scanner.</p>
+                <Link href="/generate">
+                    <Button variant="outline" className="text-black border-white/20 hover:bg-white/10 hover:text-white">
                         <ArrowLeft className="mr-2 h-4 w-4" />
-                        Back to Scanner
+                        Back to Generator
                     </Button>
                 </Link>
             </div>
         );
     }
 
+    // Map data to new component structure
+    const userData = {
+        personalInfo: {
+            name: data.personalInfo.name,
+            role: "Software Engineer", // Default
+            headline: data.personalInfo.summary?.slice(0, 100) + "..." || "Building the digital future.",
+            summary: data.personalInfo.summary,
+            aboutMe: data.personalInfo.customAboutMe || data.personalInfo.summary,
+            photoUrl: githubAvatar, // Use fetched GitHub avatar
+            location: "",
+            email: data.personalInfo.contact?.split('|').find((s: string) => s.includes('@'))?.trim() || undefined,
+        },
+        skills: {
+            technical: data.skills.map((skill: string) => ({ name: skill, level: 85 })),
+            soft: ["Problem Solving", "Adaptability", "Collaboration"]
+        },
+        education: data.education,
+        workExperience: data.experience,
+        social: {
+            github: githubUsername ? `https://github.com/${githubUsername}` : undefined,
+            linkedin: data.personalInfo.contact?.split('|').find((s: string) => s.toLowerCase().includes('linkedin'))?.trim(),
+            email: data.personalInfo.contact?.split('|').find((s: string) => s.includes('@'))?.trim()
+        }
+    };
+
+    const projects = githubData.map((repo: any) => ({
+        title: repo.name,
+        description: repo.description || "No description available.",
+        tags: [repo.language].filter(Boolean),
+        links: {
+            repo: repo.html_url,
+            demo: repo.homepage || undefined
+        },
+        featured: repo.stargazers_count > 0
+    }));
+
     return (
-        <div className="min-h-screen bg-gray-50 text-gray-900 font-sans">
-            {/* Navigation / Actions */}
-            <div className="fixed top-4 right-4 z-50 flex gap-2">
-                <Link href="/ats-check">
-                    <Button variant="secondary" size="sm" className="shadow-md">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Edit Resume
+        <ReactLenis root>
+            <div className="min-h-screen bg-background relative font-sans antialiased text-foreground overflow-x-hidden selection:bg-pink-500/30">
+                <StripedBackground />
+
+                {/* Save & Back Buttons */}
+                <div className="fixed top-20 md:top-4 right-2 md:right-4 z-[60] flex gap-1 md:gap-2 items-center">
+                    <Link href="/generate">
+                        <Button variant="secondary" size="sm" className="h-9 rounded-lg shadow-lg backdrop-blur-md bg-white/50 dark:bg-black/50 hover:bg-white/80 dark:hover:bg-black/80 px-2 md:px-4">
+                            <ArrowLeft className="h-4 w-4 md:mr-2" />
+                            <span className="hidden md:inline">Edit Data</span>
+                        </Button>
+                    </Link>
+                    <Button
+                        size="sm"
+                        onClick={() => setShowSaveDialog(true)}
+                        className="h-9 rounded-lg shadow-lg bg-blue-600 dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-800 text-white border-0 px-2 md:px-4"
+                    >
+                        <Save className="h-4 w-4 md:mr-2" />
+                        <span className="hidden sm:inline">Save Portfolio</span>
                     </Button>
-                </Link>
-                <Button
-                    size="sm"
-                    className="shadow-lg bg-gradient-to-r from-pink-400 to-pink-500 hover:from-pink-500 hover:to-pink-600 text-white border-0 font-semibold"
-                    onClick={async () => {
-                        try {
-                            if (!data) return;
-                            const res = await fetch("/api/portfolio/deploy", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                    username: data.personalInfo.contact.match(/github\.com\/([a-zA-Z0-9-]+)/)?.[1] || "user", // Fallback info
-                                    resumeData: data
-                                })
-                            });
-                            if (res.ok) {
-                                const json = await res.json();
-                                window.location.href = `/portfolio/${json.username}`;
-                            } else {
-                                alert("Failed to deploy. Please try again.");
-                            }
-                        } catch (e) {
-                            console.error(e);
-                            alert("Deployment error.");
-                        }
-                    }}
-                >
-                    <span className="mr-2">✨</span>
-                    🚀 Deploy Portfolio Website
-                </Button>
-            </div>
-
-            {/* Hero Section */}
-            <header className="bg-white border-b border-gray-200 py-20 px-6 text-center">
-                <div className="max-w-4xl mx-auto space-y-6">
-                    <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-                        {data.personalInfo.name}
-                    </h1>
-                    <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                        {data.personalInfo.summary}
-                    </p>
-
-                    <div className="flex flex-wrap justify-center gap-4 text-sm text-gray-500 pt-4">
-                        {data.personalInfo.contact.split('|').map((item, i) => (
-                            <span key={i} className="flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-full">
-                                {item.toLowerCase().includes('mail') ? <Mail className="w-3.5 h-3.5" /> :
-                                    item.toLowerCase().includes('linkedin') ? <Linkedin className="w-3.5 h-3.5" /> :
-                                        <MapPin className="w-3.5 h-3.5" />}
-                                {item.trim()}
-                            </span>
-                        ))}
+                    <div className="h-9 flex items-center">
+                        <ShareButton
+                            portfolioUrl={`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/portfolio/preview`}
+                            userName={data?.personalInfo?.name || "User"}
+                            title="Check out my portfolio preview!"
+                        />
                     </div>
                 </div>
-            </header>
 
-            {/* Stats Section */}
-            <section className="py-16 px-6 bg-gray-50">
-                <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
-                    {/* GitHub */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold flex items-center gap-2">
-                                <Github className="w-6 h-6" />
-                                GitHub Activity
-                            </h2>
-                            {githubUsername && <span className="text-sm text-gray-500 px-2 py-1 bg-gray-100 rounded">@{githubUsername}</span>}
+                <Header />
+
+                <main className="relative z-10 flex flex-col gap-20 pb-40">
+                    <HeroSection userData={userData} />
+
+                    {userData.personalInfo.aboutMe && <AboutSection userData={userData} />}
+
+                    {userData.education.length > 0 && <EducationSection userData={userData} />}
+                    <SkillsSection userData={userData} />
+
+                    {userData.workExperience.length > 0 && <CareerTimeline userData={userData} />}
+
+                    {projects.length > 0 && (
+                        <FeaturedWork projects={projects} username={githubUsername || "user"} />
+                    )}
+
+                    {userData.personalInfo.email && (
+                        <div className="text-center py-10 pb-20">
+                            <p className="text-gray-500 mb-2 font-medium">Get in touch</p>
+                            <a
+                                href={`mailto:${userData.personalInfo.email}`}
+                                className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-80 transition-opacity"
+                            >
+                                {userData.personalInfo.email}
+                            </a>
                         </div>
-                        <div className="flex justify-center overflow-x-auto pb-2">
-                            {githubData ? (
-                                <ContributionGraph weeks={githubData.weeks} />
-                            ) : (
-                                <div className="text-center text-gray-400 py-10 italic">
-                                    {githubUsername ? "Loading GitHub data..." : "No GitHub username found in resume"}
-                                </div>
-                            )}
-                        </div>
+                    )}
+                </main>
+
+                <div className="fixed bottom-8 left-0 right-0 z-50 flex justify-center pointer-events-none">
+                    <div className="pointer-events-auto">
+                        <PortfolioDock
+                            email={userData.personalInfo.email}
+                            sections={{
+                                about: !!userData.personalInfo.aboutMe,
+                                education: userData.education.length > 0,
+                                career: userData.workExperience.length > 0,
+                                projects: projects.length > 0
+                            }}
+                        />
                     </div>
+                </div>
 
-                    {/* LeetCode */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-xl font-bold flex items-center gap-2">
-                                <Code className="w-6 h-6 text-orange-500" />
-                                LeetCode Stats
-                            </h2>
-                            {leetcodeUsername && <span className="text-sm text-gray-500 px-2 py-1 bg-gray-100 rounded">Problem Solving</span>}
-                        </div>
-                        <div className="h-64 flex items-center justify-center">
-                            {leetcodeData ? (
-                                <LeetCodePieChart
-                                    easySolved={leetcodeData.easySolved}
-                                    mediumSolved={leetcodeData.mediumSolved}
-                                    hardSolved={leetcodeData.hardSolved}
+                {/* Save Dialog */}
+                {showSaveDialog && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                        <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Save Portfolio</h2>
+                            <p className="text-gray-600 dark:text-gray-300">Give your portfolio a name to save it to your dashboard</p>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Portfolio Name</label>
+                                <input
+                                    type="text"
+                                    value={portfolioName}
+                                    onChange={(e) => setPortfolioName(e.target.value)}
+                                    placeholder="e.g., Software Engineer Resume"
+                                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-neutral-700 dark:text-white"
+                                    autoFocus
                                 />
-                            ) : (
-                                <div className="text-center text-gray-400 italic">
-                                    {leetcodeUsername ? "Loading LeetCode data..." : "No LeetCode username found in resume"}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* Experience & Education */}
-            <section className="py-16 px-6 bg-white border-t border-gray-200">
-                <div className="max-w-5xl mx-auto grid lg:grid-cols-3 gap-12">
-                    {/* Experience (2 cols) */}
-                    <div className="lg:col-span-2 space-y-8">
-                        <h2 className="text-2xl font-bold flex items-center gap-2 pb-4 border-b border-gray-100">
-                            <Briefcase className="w-6 h-6 text-blue-600" />
-                            Work Experience
-                        </h2>
-                        <div className="space-y-12">
-                            {data.experience.map((exp, i) => (
-                                <div key={i} className="relative pl-8 border-l-2 border-gray-200">
-                                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-white border-4 border-blue-600"></div>
-                                    <div className="mb-2">
-                                        <h3 className="text-xl font-bold text-gray-900">{exp.role}</h3>
-                                        <div className="flex flex-wrap items-center gap-2 text-gray-600 mt-1">
-                                            <span className="font-medium text-blue-600">{exp.company}</span>
-                                            <span>•</span>
-                                            <span className="text-sm bg-gray-100 px-2 py-0.5 rounded flex items-center gap-1">
-                                                <Calendar className="w-3 h-3" />
-                                                {exp.date}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <ul className="list-disc list-outside ml-4 text-gray-600 space-y-2 marker:text-gray-400">
-                                        {exp.description.map((bullet, j) => (
-                                            <li key={j}>{bullet}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Sidebar: Education & Skills */}
-                    <div className="space-y-12">
-                        {/* Education */}
-                        <div>
-                            <h2 className="text-xl font-bold flex items-center gap-2 pb-4 border-b border-gray-100 mb-6">
-                                <GraduationCap className="w-5 h-5 text-purple-600" />
-                                Education
-                            </h2>
-                            <div className="space-y-6">
-                                {data.education.map((edu, i) => (
-                                    <div key={i}>
-                                        <h3 className="font-bold text-gray-900">{edu.school}</h3>
-                                        <p className="text-gray-600 text-sm mt-1">{edu.degree}</p>
-                                        <div className="flex items-center gap-1 text-xs text-gray-500 mt-2 bg-gray-50 px-2 py-1 rounded w-fit">
-                                            <Calendar className="w-3 h-3" />
-                                            {edu.date}
-                                        </div>
-                                    </div>
-                                ))}
                             </div>
-                        </div>
 
-                        {/* Skills */}
-                        <div>
-                            <h2 className="text-xl font-bold flex items-center gap-2 pb-4 border-b border-gray-100 mb-6">
-                                <Code className="w-5 h-5 text-green-600" />
-                                Skills
-                            </h2>
-                            <div className="flex flex-wrap gap-2">
-                                {data.skills.map((skill, i) => (
-                                    <span key={i} className="px-3 py-1.5 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors cursor-default">
-                                        {skill}
-                                    </span>
-                                ))}
+                            <div className="flex gap-3 pt-4">
+                                <Button
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => {
+                                        setShowSaveDialog(false);
+                                        setPortfolioName("");
+                                    }}
+                                    disabled={saving}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    className="flex-1 bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white"
+                                    onClick={async () => {
+                                        if (!data || !portfolioName.trim()) {
+                                            alert("Please enter a portfolio name");
+                                            return;
+                                        }
+
+                                        setSaving(true);
+                                        try {
+                                            const res = await fetch("/api/save-portfolio", {
+                                                method: "POST",
+                                                headers: { "Content-Type": "application/json" },
+                                                body: JSON.stringify({
+                                                    ...data,
+                                                    portfolioName: portfolioName.trim(),
+                                                }),
+                                            });
+
+                                            if (res.ok) {
+                                                localStorage.removeItem("portfolioPreviewData");
+                                                window.location.href = "/dashboard";
+                                            } else {
+                                                if (res.status === 401) {
+                                                    alert("Please sign in to save your portfolio.");
+                                                    window.location.href = "/sign-in?redirect_url=/portfolio/preview";
+                                                } else {
+                                                    const errorData = await res.json();
+                                                    alert(errorData.error || "Failed to save portfolio");
+                                                }
+                                            }
+                                        } catch (error) {
+                                            console.error("Save error:", error);
+                                            alert("An error occurred while saving");
+                                        } finally {
+                                            setSaving(false);
+                                        }
+                                    }}
+                                    disabled={saving || !portfolioName.trim()}
+                                >
+                                    {saving ? "Saving..." : "Save"}
+                                </Button>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
-
-            {/* Footer */}
-            <footer className="bg-gray-900 text-white py-12 text-center">
-                <p className="text-gray-500 text-sm">
-                    Generated by AI Portfolio Builder. &copy; {new Date().getFullYear()} {data.personalInfo.name}
-                </p>
-            </footer>
-        </div>
+                )}
+            </div>
+        </ReactLenis>
     );
 }
+

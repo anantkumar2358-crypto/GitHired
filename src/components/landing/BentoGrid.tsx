@@ -51,13 +51,13 @@ const bonusFeatures = [
 
 export function BentoGrid() {
     return (
-        <section className="py-20 px-6 bg-white">
+        <section className="py-20 px-6 bg-background">
             <div className="max-w-7xl mx-auto">
                 <div className="text-center mb-16">
-                    <h2 className="text-4xl md:text-5xl mb-4 font-bold text-slate-900">
+                    <h2 className="text-4xl md:text-5xl mb-4 font-bold text-foreground">
                         Powerful Features
                     </h2>
-                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                         Everything you need to create a professional portfolio that stands out
                     </p>
                 </div>
@@ -77,7 +77,7 @@ export function BentoGrid() {
 
                 {/* Bonus Features Section */}
                 <div className="mt-16">
-                    <h3 className="text-3xl text-center mb-8 font-bold text-slate-900">Bonus Features</h3>
+                    <h3 className="text-3xl text-center mb-8 font-bold text-foreground">Bonus Features</h3>
                     <div className="flex gap-6 justify-center flex-wrap">
                         {bonusFeatures.map((feature, index) => (
                             <BonusFeatureCard

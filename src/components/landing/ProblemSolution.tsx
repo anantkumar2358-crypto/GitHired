@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 
 export function ProblemSolution() {
     return (
-        <section className="py-20 px-6 bg-gradient-to-br from-gray-50 to-white">
+        <section className="py-20 px-6 bg-gradient-to-br from-gray-50 to-white dark:from-neutral-900 dark:to-background">
             <div className="max-w-7xl mx-auto">
                 <div className="grid md:grid-cols-3 gap-8">
                     {/* Problem Statement */}
@@ -14,13 +14,13 @@ export function ProblemSolution() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0 }}
                         viewport={{ once: true }}
-                        className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100/50"
+                        className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100/50 dark:bg-card dark:border-border/50"
                     >
-                        <div className="size-12 bg-red-100 rounded-xl flex items-center justify-center mb-4">
-                            <AlertCircle className="size-6 text-red-600" />
+                        <div className="size-12 bg-red-100 rounded-xl flex items-center justify-center mb-4 dark:bg-red-900/20">
+                            <AlertCircle className="size-6 text-red-600 dark:text-red-400" />
                         </div>
-                        <h3 className="text-xl font-bold mb-4 text-slate-900">Problem Statement</h3>
-                        <p className="text-gray-600 leading-relaxed">
+                        <h3 className="text-xl font-bold mb-4 text-slate-900 dark:text-foreground">Problem Statement</h3>
+                        <p className="text-gray-600 leading-relaxed dark:text-muted-foreground">
                             Students struggle to convert raw achievements into professional portfolios that attract recruiters.
                         </p>
                     </motion.div>
@@ -31,13 +31,13 @@ export function ProblemSolution() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
                         viewport={{ once: true }}
-                        className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100/50"
+                        className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100/50 dark:bg-card dark:border-border/50"
                     >
-                        <div className="size-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4">
-                            <Target className="size-6 text-orange-600" />
+                        <div className="size-12 bg-orange-100 rounded-xl flex items-center justify-center mb-4 dark:bg-orange-900/20">
+                            <Target className="size-6 text-orange-600 dark:text-orange-400" />
                         </div>
-                        <h3 className="text-xl font-bold mb-4 text-slate-900">The Challenge</h3>
-                        <p className="text-gray-600 leading-relaxed">
+                        <h3 className="text-xl font-bold mb-4 text-slate-900 dark:text-foreground">The Challenge</h3>
+                        <p className="text-gray-600 leading-relaxed dark:text-muted-foreground">
                             Automatically generate a polished portfolio website from a developer's digital footprint.
                         </p>
                     </motion.div>

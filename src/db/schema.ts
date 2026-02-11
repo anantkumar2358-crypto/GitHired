@@ -24,6 +24,7 @@ export const users = pgTable('users', {
 export const resumeData = pgTable('resume_data', {
     id: text('id').primaryKey().$defaultFn(() => createId()),
     userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+    name: varchar('name', { length: 255 }), // Custom name for the portfolio
     resumeText: text('resume_text'),
     professionalSummary: text('professional_summary'),
     skills: jsonb('skills').$type<string[]>().default([]),

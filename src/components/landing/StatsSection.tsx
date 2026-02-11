@@ -12,7 +12,7 @@ const stats = [
 
 export function StatsSection() {
     return (
-        <section className="py-16 px-6 bg-white border-y border-gray-100">
+        <section className="py-16 px-6 bg-background border-y border-border">
             <div className="max-w-7xl mx-auto">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
                     {stats.map((stat, index) => {
@@ -32,7 +32,7 @@ export function StatsSection() {
                                 <div className="text-3xl font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-1">
                                     {stat.value}
                                 </div>
-                                <div className="text-gray-600 text-sm">
+                                <div className="text-muted-foreground text-sm">
                                     {stat.label}
                                 </div>
                             </motion.div>
