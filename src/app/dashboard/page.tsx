@@ -245,7 +245,7 @@ export default function DashboardPage() {
                         ))}
 
                         {/* Add New Card */}
-                        <Link href="/ats-check">
+                        <Link href="/generate">
                             <div className="bg-white/40 dark:bg-neutral-800/40 backdrop-blur-xl p-6 rounded-2xl border-2 border-dashed border-blue-300 dark:border-blue-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all hover:scale-[1.02] cursor-pointer flex flex-col items-center justify-center min-h-[200px] group">
                                 <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                     <Plus className="w-8 h-8" />
@@ -269,7 +269,7 @@ export default function DashboardPage() {
                         <p className="text-gray-600 dark:text-gray-300 mb-6">
                             Create your first portfolio by uploading your resume
                         </p>
-                        <Link href="/ats-check">
+                        <Link href="/generate">
                             <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]">
                                 Get Started
                             </button>
