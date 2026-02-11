@@ -57,7 +57,7 @@ export function Team() {
                     </motion.div>
                 </div>
 
-                <div className="relative h-[600px] w-full">
+                <div className="relative min-h-[600px] h-auto w-full">
                     <ChromaGrid
                         items={team}
                         radius={250}
